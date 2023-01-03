@@ -1,0 +1,266 @@
+package staffProject;
+
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Properties;
+
+public class staffQueries {
+	
+	private static final String URL = 
+			"jdbc:oracle:thin:@192.168.0.213:1521:XE";
+	private static final String USERNAME = "sys";
+	private static final String PASSWORD = "ROK19861";
+	private static final String LOGON = "sysdba";
+	
+	private Connection conn;
+	private PreparedStatement browseAll;
+	private PreparedStatement search;
+	private PreparedStatement searchdep;
+	private PreparedStatement insert;
+	private Properties dbInfo ;
+	
+	
+	
+	//set up the info object for connecting to database
+	
+
+	public staffQueries(){
+		try {
+			//try to load the oracle drivers
+			Class.forName("oracle.jdbc.driver.OracleDriver");
+			System.out.println("Drivers Loaded ok");
+			
+			dbInfo = new Properties();
+			dbInfo.put("user", USERNAME);
+			dbInfo.put("password", PASSWORD);
+			dbInfo.put("internal_logon", LOGON);
+			
+			conn = DriverManager.getConnection(URL, dbInfo);
+			System.out.println("Connected OK");
+			
+			
+			
+			String sql1 = "SELECT * FROM staff5";
+			/*String sql2 = "SELECT * FROM staff5 WHERE "+
+					"UPPER(FName) LIKE UPPER(?) AND "+
+					"UPPER(LName) LIKE UPPER(?) ";*/
+			
+			String sql2="SELECT * FROM STAFF5 WHERE "+
+					 "UPPER(FName) LIKE UPPER(?) AND "+
+							 "UPPER(LName) LIKE UPPER(?) " ;
+			String sql3 = "INSERT INTO staff5 "+
+					"(StaffID, fName, lName, "+
+					"dob, department, sal, hiredate, fulltime) VALUES "+
+					"(staffSequence5.NextVal, ?, ?, ?, ?, ?, ?, ?)";
+			String sql4 = "SELECT * FROM STAFF5 WHERE UPPER(department) LIKE UPPER(?)";
+			
+			
+			//Test
+			//String sql4 = "SELECT * FROM staff5 WHERE "+
+					//"UPPER(department) LIKE UPPER(?)";
+			//Test
+			
+			browseAll = conn.prepareStatement(sql1);
+			search = conn.prepareStatement(sql2);
+			insert = conn.prepareStatement(sql3);
+			searchdep = conn.prepareStatement(sql4);	
+			//getAllstaff();
+			
+		
+		} catch (SQLException ex1)	{
+			System.out.println("Cannot connect to database");
+			System.exit(1);
+			
+		} catch (Exception ex){
+			//ex.printStackTrace();
+			System.out.println("Cannot load drivers");
+			System.exit(2);
+		}
+	}
+	
+	public void close(){
+		try {
+			conn.close();
+		} catch (SQLException e){
+			e.printStackTrace();
+		}
+	}
+	
+	
+	
+	public ArrayList<staff> getAllstaff(){
+		ArrayList<staff> results = null;
+		ResultSet rs = null;
+		//results = db.getAllstaff();
+		try {
+			results = new ArrayList<staff>();
+			//select everything from database
+			rs = browseAll.executeQuery();
+			//loop through the resultset and create
+			//a Product Object for each record
+			//and store in an ArrayList
+			
+			while(rs.next()){
+			
+				
+				results.add(new staff(rs.getInt("StaffID"), 
+						rs.getString("fName"),
+						rs.getString("lName"),
+						rs.getDate("dob"),
+						rs.getString("Department"),
+						rs.getDouble("sal"),
+						rs.getDate("hiredate"),
+						rs.getBoolean("fulltime")));
+						
+			}
+			
+			
+			
+		} catch (NullPointerException ex2){
+			
+			ex2.printStackTrace();
+		} catch (SQLException ex){
+			ex.printStackTrace(); //for debugging
+			System.out.println("Lost Connection to DB");
+		} finally {
+			try {
+				rs.close();
+			} catch (SQLException ex2){
+				close();
+				ex2.printStackTrace(); //for debugging
+				System.out.println("Sorry connection lost - try later");
+			}
+		}
+		return results;
+	}
+	
+	
+	public ArrayList<staff> searchStaff(String x, String y){
+		ArrayList<staff> results = null;
+		ResultSet rs = null;
+		
+		try {
+			
+			results = new ArrayList<staff>();
+			//set the missing parameters in the Prepared statement
+			search.setString(1, "%"+x+"%");
+			search.setString(2, "%"+y+"%");
+			
+			//select everything from database
+			rs = search.executeQuery();
+			//loop through the resultset and create
+			//a Product Object for each record
+			//and store in an ArrayList
+			
+			while(rs.next()){
+				results.add(new staff(rs.getInt("STAFFID"), 
+						rs.getString("FName"),
+						rs.getString("LName"),
+						rs.getDate("DOB"),
+						rs.getString("Department"),
+						rs.getDouble("SAL"),
+						rs.getDate("HIREDATE"),
+						rs.getBoolean("FULLTIME")));
+			}
+			
+			
+			
+		} catch (SQLException ex){
+			ex.printStackTrace(); //for debugging
+			System.out.println("Lost Connection to DB");
+		} finally {
+			try {
+				rs.close();
+			} catch (SQLException ex2){
+				close();
+				ex2.printStackTrace(); //for debugging
+				System.out.println("Sorry connection lost - try later");
+			}
+		}
+		return results;
+	}
+	
+	
+	public ArrayList<staff> searchStaffDepartment(String k){
+		 ArrayList<staff> results=null;
+		 ResultSet rs=null;
+		 
+		 try {
+			 
+		 //set the missing parameters in the prepared statement
+			 results=new ArrayList<staff>();
+			 
+			// searchdep.setString(1, d);
+			 
+			 searchdep.setString(1, "%"+k+"%");
+			
+			 
+			 //select everything from from database
+			 rs=searchdep.executeQuery();
+			 
+			 
+			 //loop though the resultset and create
+			 
+			 while(rs.next()) {
+				 results.add(new staff(rs.getInt("StaffID"),
+						 rs.getString("FName"),
+							rs.getString("LName"),
+							rs.getDate("DOB"),
+							rs.getString("Department"),
+							rs.getDouble("SAL"),
+							rs.getDate("HIREDATE"),
+							rs.getBoolean("FULLTIME")));
+			 }
+			 
+			 
+		 }catch(SQLException ex) {
+			 ex.printStackTrace();
+			 System.out.println("Lost connection to DB");
+		 }finally {
+			 try {
+				 rs.close();
+			 }catch (SQLException ex2) {
+				 close();
+				 ex2.printStackTrace();
+				 System.out.println("Sorry Connection lost- try later");
+				 
+			 }
+		 }
+		 return results;
+			 
+		 }
+
+	 
+	
+	
+	
+	public int addStaff(String f, String l, Date db, String d, double sl, Date hd, Boolean fl){
+		
+		int result = 0;
+		
+		try {
+			
+			insert.setString(1, f);
+			insert.setString(2, l);
+			insert.setDate(3, db);
+			insert.setString(4, d);
+			insert.setDouble(5, sl);
+			insert.setDate(6, hd);
+			insert.setBoolean(7, fl);
+			
+			result = insert.executeUpdate();
+		} catch (SQLException ex){
+			ex.printStackTrace(); //for debugging
+			close();
+		}
+		return result; //should return 1 if record was inserted
+	}
+
+	
+}
+

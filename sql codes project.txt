@@ -1,0 +1,23 @@
+create table tblStaffm (
+StaffID integer not null primary key,
+FName varchar2(30) null,
+LName varchar2(30) null,
+dob date,
+department varchar2(30) null,
+salary NUMBER(8,2) null,
+hiredate DATE,
+fulltime integer
+
+
+);
+
+Create Sequence tblStaffmSequence noCache;
+
+INSERT INTO tblStaffm
+(StaffID, FName, LName, dob, department, salary, hiredate, fulltime)
+Values
+(tblStaffmSequence.nextval, 'Rory', 'OKeeffe',date '1995-01-01', 'Finance', 40000.00,date '1995-01-01', 0);
+
+SELECT
+    *
+FROM tblStaffm;

@@ -1,0 +1,17 @@
+package staffProject;
+
+import staffProject.staffFrame;
+
+public class staffMain {
+
+	public static void main(String[] args) {
+		
+		//Date date = new Date();
+		
+		staffFrame myWindow = new staffFrame();
+		
+		
+	
+	}
+
+}
